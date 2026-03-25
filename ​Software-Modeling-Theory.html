@@ -1,0 +1,2377 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Software Modeling & Analysis — منصة تفاعلية</title>
+  <!-- خطوط Google المميزة -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ========================================
+       متغيرات الألوان والثيم العام
+    ======================================== */
+    :root {
+      --bg:           #0b0f1a;
+      --surface:      #111827;
+      --surface2:     #1a2235;
+      --border:       #1e2d45;
+      --accent:       #00d4ff;
+      --accent2:      #7c3aed;
+      --accent3:      #10b981;
+      --gold:         #f59e0b;
+      --danger:       #ef4444;
+      --text:         #e2e8f0;
+      --text-dim:     #94a3b8;
+      --text-faint:   #475569;
+      --card-glow:    rgba(0,212,255,0.08);
+      --radius:       14px;
+      --radius-sm:    8px;
+    }
+
+    /* ========================================
+       إعادة ضبط عامة
+    ======================================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.7;
+    }
+
+    /* ========================================
+       خلفية متحركة (نجوم)
+    ======================================== */
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.4;
+    }
+
+    /* ========================================
+       شريط التنقل العلوي
+    ======================================== */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(11,15,26,0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 62px;
+      gap: 0.75rem;
+    }
+
+    .navbar-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .navbar-brand .course-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .navbar-brand .course-sub {
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+    }
+
+    /* زر الجانب العملي */
+    .btn-practical {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: linear-gradient(135deg, #7c3aed, #00d4ff);
+      color: #fff;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 0.5rem 0.9rem;
+      border-radius: 50px;
+      text-decoration: none;
+      white-space: nowrap;
+      box-shadow: 0 0 20px rgba(124,58,237,0.5);
+      transition: transform 0.2s, box-shadow 0.2s;
+      flex-shrink: 0;
+    }
+
+    .btn-practical:hover {
+      transform: translateY(-2px) scale(1.04);
+      box-shadow: 0 0 30px rgba(0,212,255,0.6);
+    }
+
+    .btn-practical .icon { font-size: 1rem; }
+
+    /* ========================================
+       قسم الهيرو
+    ======================================== */
+    .hero {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 3.5rem 1.25rem 2.5rem;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,212,255,0.07) 0%, transparent 70%);
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.3);
+      border-radius: 50px;
+      padding: 0.3rem 1rem;
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 1.25rem;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .hero h1 {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(1.5rem, 5vw, 2.4rem);
+      font-weight: 700;
+      line-height: 1.25;
+      background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero p {
+      color: var(--text-dim);
+      font-size: 0.9rem;
+      max-width: 500px;
+      margin: 0 auto 2rem;
+    }
+
+    /* شريط الإحصائيات */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 0;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+
+    .stat-pill span:first-child { color: var(--accent3); font-weight: 700; }
+
+    /* ========================================
+       أقسام التنقل
+    ======================================== */
+    .tab-nav {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      overflow-x: auto;
+      gap: 0.5rem;
+      padding: 1rem 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+
+    .tab-nav::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Tajawal', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-faint);
+      padding: 0.6rem 1.1rem;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      border-bottom: 2px solid transparent;
+      transition: all 0.25s;
+      white-space: nowrap;
+    }
+
+    .tab-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: rgba(0,212,255,0.06);
+    }
+
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ========================================
+       محتوى الأقسام
+    ======================================== */
+    .tab-content { display: none; position: relative; z-index: 1; }
+    .tab-content.active { display: block; }
+
+    .section-wrap {
+      padding: 1.25rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* ========================================
+       أكورديون المحاضرات
+    ======================================== */
+    .week-header {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      color: var(--accent2);
+      text-transform: uppercase;
+      margin: 1.5rem 0 0.6rem;
+      padding-right: 0.25rem;
+    }
+
+    .week-header:first-child { margin-top: 0; }
+
+    .accordion-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+      transition: border-color 0.25s;
+    }
+
+    .accordion-item.open { border-color: var(--accent); }
+
+    .accordion-trigger {
+      width: 100%;
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 1.1rem;
+      text-align: right;
+      font-family: 'Tajawal', sans-serif;
+    }
+
+    .accordion-trigger .lec-num {
+      flex-shrink: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--accent2), var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .accordion-trigger .lec-info { flex: 1; min-width: 0; }
+
+    .accordion-trigger .lec-title {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    .accordion-trigger .lec-sub {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .accordion-trigger .chevron {
+      flex-shrink: 0;
+      color: var(--text-faint);
+      font-size: 0.8rem;
+      transition: transform 0.3s;
+    }
+
+    .accordion-item.open .chevron { transform: rotate(180deg); }
+
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .accordion-body-inner {
+      padding: 0 1.1rem 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ========================================
+       بطاقات المفاهيم داخل المحاضرات
+    ======================================== */
+    .concept-block {
+      margin-top: 1rem;
+    }
+
+    .concept-block + .concept-block {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px dashed var(--border);
+    }
+
+    .concept-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .concept-title::before {
+      content: '';
+      width: 3px;
+      height: 1em;
+      background: var(--accent);
+      border-radius: 2px;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    /* تعريف إنجليزي */
+    .def-en {
+      background: rgba(0,212,255,0.04);
+      border: 1px solid rgba(0,212,255,0.15);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.82rem;
+      color: #c7d8e8;
+      line-height: 1.65;
+      margin-bottom: 0.6rem;
+      direction: ltr;
+      text-align: left;
+    }
+
+    /* شرح عربي */
+    .def-ar {
+      background: rgba(16,185,129,0.07);
+      border: 1px solid rgba(16,185,129,0.2);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      font-size: 0.83rem;
+      color: #a7f3d0;
+      line-height: 1.7;
+    }
+
+    .def-ar .ar-label {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-weight: 700;
+      color: var(--accent3);
+      font-size: 0.8rem;
+      margin-bottom: 0.35rem;
+    }
+
+    /* مكان الصورة */
+    .diagram-placeholder {
+      background: linear-gradient(135deg, rgba(124,58,237,0.08), rgba(0,212,255,0.05));
+      border: 2px dashed rgba(124,58,237,0.35);
+      border-radius: var(--radius);
+      padding: 1.5rem 1rem;
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    .diagram-placeholder .ph-icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
+    .diagram-placeholder .ph-title { font-family: 'Space Mono', monospace; font-size: 0.78rem; color: var(--accent2); font-weight: 700; }
+    .diagram-placeholder .ph-hint { font-size: 0.72rem; color: var(--text-faint); margin-top: 0.3rem; }
+
+    /* قائمة نقاط */
+    .bullet-list {
+      list-style: none;
+      padding: 0;
+      margin: 0.5rem 0;
+    }
+
+    .bullet-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font-size: 0.83rem;
+      color: var(--text-dim);
+      padding: 0.3rem 0;
+      font-family: 'Sora', sans-serif;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .bullet-list li::before {
+      content: '▸';
+      color: var(--accent);
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* جدول */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      margin: 0.75rem 0;
+      overflow: hidden;
+      border-radius: var(--radius-sm);
+      direction: ltr;
+      text-align: left;
+    }
+
+    .data-table th {
+      background: rgba(0,212,255,0.12);
+      color: var(--accent);
+      padding: 0.6rem 0.8rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      border: 1px solid var(--border);
+    }
+
+    .data-table td {
+      padding: 0.55rem 0.8rem;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+      vertical-align: top;
+    }
+
+    .data-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+    /* ========================================
+       بطاقات الفلاش كارد
+    ======================================== */
+    #flashcards-tab .section-wrap { padding-bottom: 2rem; }
+
+    .fc-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .fc-counter {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--text-dim);
+    }
+
+    .fc-progress {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+
+    .fc-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+
+    /* بطاقة قابلة للقلب */
+    .flashcard-scene {
+      perspective: 1200px;
+      margin: 0 auto 1.5rem;
+      max-width: 480px;
+      height: 220px;
+      cursor: pointer;
+    }
+
+    .flashcard-scene.flipped .flashcard-inner {
+      transform: rotateY(180deg);
+    }
+
+    .flashcard-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.55s cubic-bezier(0.4,0.2,0.2,1);
+      transform-style: preserve-3d;
+    }
+
+    .flashcard-face {
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    /* وجه البطاقة الأمامي */
+    .flashcard-front {
+      background: linear-gradient(135deg, var(--surface2), #0f1c30);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .flashcard-front::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      background: radial-gradient(ellipse at 30% 20%, rgba(0,212,255,0.08), transparent 60%);
+      pointer-events: none;
+    }
+
+    .fc-term {
+      font-family: 'Space Mono', monospace;
+      font-size: clamp(1.1rem, 4vw, 1.6rem);
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+      direction: ltr;
+    }
+
+    .fc-hint {
+      font-size: 0.72rem;
+      color: var(--text-faint);
+      margin-top: 0.5rem;
+    }
+
+    .fc-category {
+      position: absolute;
+      top: 0.9rem;
+      right: 0.9rem;
+      background: rgba(124,58,237,0.2);
+      border: 1px solid rgba(124,58,237,0.3);
+      border-radius: 50px;
+      padding: 0.15rem 0.6rem;
+      font-size: 0.65rem;
+      color: #a78bfa;
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* وجه البطاقة الخلفي */
+    .flashcard-back {
+      background: linear-gradient(135deg, #0d1f14, #0a1520);
+      border: 1px solid rgba(16,185,129,0.3);
+      transform: rotateY(180deg);
+      overflow-y: auto;
+      align-items: flex-start;
+      text-align: right;
+    }
+
+    .fc-back-en {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.78rem;
+      color: #c7d8e8;
+      direction: ltr;
+      text-align: left;
+      width: 100%;
+      margin-bottom: 0.75rem;
+      line-height: 1.6;
+    }
+
+    .fc-back-ar {
+      font-size: 0.8rem;
+      color: #a7f3d0;
+      width: 100%;
+      border-top: 1px dashed rgba(16,185,129,0.2);
+      padding-top: 0.6rem;
+      line-height: 1.65;
+    }
+
+    .fc-back-ar .ar-lbl {
+      color: var(--accent3);
+      font-weight: 700;
+      font-size: 0.72rem;
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    /* أزرار التنقل */
+    .fc-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .fc-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: 'Tajawal', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.6rem 1.2rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .fc-btn:hover { background: var(--surface2); border-color: var(--accent); color: var(--accent); }
+    .fc-btn.primary { background: linear-gradient(135deg, var(--accent2), var(--accent)); border: none; color: #fff; }
+    .fc-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(0,212,255,0.35); }
+    .fc-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* فلتر الفئات */
+    .fc-filter {
+      display: flex;
+      overflow-x: auto;
+      gap: 0.5rem;
+      margin-bottom: 1.1rem;
+      scrollbar-width: none;
+      padding-bottom: 0.25rem;
+    }
+
+    .fc-filter::-webkit-scrollbar { display: none; }
+
+    .fc-filter-btn {
+      flex-shrink: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      color: var(--text-dim);
+      font-family: 'Tajawal', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.3rem 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .fc-filter-btn.active {
+      background: rgba(124,58,237,0.15);
+      border-color: var(--accent2);
+      color: #c4b5fd;
+    }
+
+    /* ========================================
+       اختبر فهمك (الاختبارات القصيرة)
+    ======================================== */
+    .quiz-section { margin-bottom: 1.25rem; }
+
+    .quiz-lec-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent2);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .quiz-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      margin-bottom: 0.75rem;
+      transition: border-color 0.2s;
+    }
+
+    .quiz-question {
+      font-family: 'Sora', sans-serif;
+      font-size: 0.82rem;
+      color: var(--text);
+      margin-bottom: 0.9rem;
+      direction: ltr;
+      text-align: left;
+      line-height: 1.6;
+    }
+
+    .quiz-options { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    .quiz-opt {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.6rem 0.9rem;
+      text-align: left;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.78rem;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.2s;
+      direction: ltr;
+    }
+
+    .quiz-opt:hover:not(:disabled) { border-color: var(--accent); color: var(--text); background: rgba(0,212,255,0.05); }
+    .quiz-opt.correct { background: rgba(16,185,129,0.15); border-color: var(--accent3); color: #6ee7b7; }
+    .quiz-opt.wrong   { background: rgba(239,68,68,0.12);  border-color: var(--danger);  color: #fca5a5; }
+    .quiz-opt:disabled { cursor: default; }
+
+    .quiz-feedback {
+      font-size: 0.76rem;
+      margin-top: 0.6rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+
+    .quiz-feedback.show { display: block; }
+    .quiz-feedback.ok { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.2); }
+    .quiz-feedback.fail { background: rgba(239,68,68,0.1); color: #fca5a5; border: 1px solid rgba(239,68,68,0.2); }
+
+    /* سكور */
+    .quiz-score-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.85rem 1.1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .quiz-score-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+
+    .quiz-score-lbl { font-size: 0.8rem; color: var(--text-dim); }
+
+    /* ========================================
+       فوتر
+    ======================================== */
+    .site-footer {
+      position: relative;
+      z-index: 1;
+      margin-top: 3rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 2rem 1.25rem;
+      text-align: center;
+    }
+
+    .footer-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+
+    .footer-sub {
+      font-size: 0.78rem;
+      color: var(--text-faint);
+      margin-bottom: 1rem;
+    }
+
+    .ig-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+      color: #fff;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      font-size: 0.82rem;
+      padding: 0.55rem 1.2rem;
+      border-radius: 50px;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(253,29,29,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .ig-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 28px rgba(253,29,29,0.5);
+    }
+
+    /* ========================================
+       مساعدات عامة
+    ======================================== */
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+
+    /* انيميشن دخول */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-up { animation: fadeUp 0.45s ease both; }
+
+    /* ========================================
+       Responsive
+    ======================================== */
+    @media (max-width: 400px) {
+      .flashcard-scene { height: 240px; }
+      .fc-term { font-size: 1rem; }
+    }
+
+    /* تمييز خاص للمصطلحات الإنجليزية */
+    .en-tag {
+      display: inline-block;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.2);
+      border-radius: 4px;
+      padding: 0 0.4em;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.8em;
+      color: var(--accent);
+      direction: ltr;
+    }
+
+    /* شريط تمييز الأسبوع */
+    .week-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: rgba(124,58,237,0.12);
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 50px;
+      padding: 0.15rem 0.6rem;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      color: #c4b5fd;
+      margin-right: 0.5rem;
+    }
+
+    .pattern-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.9rem 1rem;
+      margin: 0.6rem 0;
+      font-family: 'Sora', sans-serif;
+      font-size: 0.8rem;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .pattern-card .pc-name {
+      font-weight: 700;
+      color: var(--gold);
+      margin-bottom: 0.3rem;
+      font-size: 0.85rem;
+    }
+
+    .pattern-card .pc-row {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 0.2rem;
+      align-items: flex-start;
+    }
+
+    .pattern-card .pc-label {
+      color: var(--text-faint);
+      min-width: 90px;
+      font-size: 0.73rem;
+    }
+
+    .pattern-card .pc-val { color: var(--text-dim); }
+
+  </style>
+</head>
+<body>
+
+<!-- خلفية نجوم متحركة -->
+<canvas id="stars-canvas"></canvas>
+
+<!-- ========================================
+     شريط التنقل العلوي
+======================================== -->
+<nav class="navbar">
+  <div class="navbar-brand">
+    <span class="course-name">SOFTWARE MODELING & ANALYSIS</span>
+    <span class="course-sub">المرحلة الثانية — الفصل الثاني — نظري</span>
+  </div>
+  <a class="btn-practical" href="https://mousa-2020.github.io/Software-Modeling-and-Analysis/" target="_blank" rel="noopener">
+    <span class="icon">💻</span> انتقل للجانب العملي
+  </a>
+</nav>
+
+<!-- ========================================
+     قسم الهيرو
+======================================== -->
+<header class="hero fade-up">
+  <div class="hero-badge">📚 الجامعة التكنولوجية — كلية علوم الحاسوب</div>
+  <h1>منصة تعليمية تفاعلية<br/>نمذجة وتحليل البرمجيات</h1>
+  <p>جميع محاضرات الملزمة النظرية مُبسَّطة، مع بطاقات حفظ تفاعلية واختبارات قصيرة لتتدرب على نمط الامتحان</p>
+  <div class="stats-bar">
+    <div class="stat-pill"><span>15</span> أسبوعاً</div>
+    <div class="stat-pill"><span>12+</span> محاضرة</div>
+    <div class="stat-pill"><span>60+</span> فلاش كارد</div>
+    <div class="stat-pill"><span>36+</span> سؤال اختبار</div>
+  </div>
+</header>
+
+<!-- ========================================
+     أزرار التنقل بين الأقسام
+======================================== -->
+<nav class="tab-nav" role="tablist">
+  <button class="tab-btn active" onclick="switchTab('chapters')" role="tab">📖 المحاضرات</button>
+  <button class="tab-btn" onclick="switchTab('flashcards')" role="tab">🃏 فلاش كارد</button>
+  <button class="tab-btn" onclick="switchTab('quizzes')" role="tab">✅ اختبر فهمك</button>
+</nav>
+
+<!-- ========================================================
+     القسم الأول: المحاضرات (أكورديون)
+======================================================== -->
+<div id="chapters-tab" class="tab-content active">
+<div class="section-wrap" id="chapters-container">
+  <!-- يتم توليد المحتوى بواسطة JavaScript -->
+</div>
+</div>
+
+<!-- ========================================================
+     القسم الثاني: الفلاش كارد
+======================================================== -->
+<div id="flashcards-tab" class="tab-content">
+<div class="section-wrap">
+
+  <div class="fc-filter" id="fc-filter">
+    <!-- يُولَّد بـ JS -->
+  </div>
+
+  <div class="fc-progress"><div class="fc-progress-fill" id="fc-progress-fill" style="width:0%"></div></div>
+
+  <div class="fc-controls">
+    <span class="fc-counter" id="fc-counter">البطاقة 1 من 60</span>
+    <div style="display:flex;gap:0.5rem;">
+      <button class="fc-btn" onclick="shuffleCards()">🔀 خلط</button>
+      <button class="fc-btn" onclick="resetCards()">↺ إعادة</button>
+    </div>
+  </div>
+
+  <div class="flashcard-scene" id="flashcard-scene" onclick="flipCard()">
+    <div class="flashcard-inner" id="flashcard-inner">
+      <div class="flashcard-face flashcard-front" id="fc-front">
+        <div class="fc-category" id="fc-category">WEEK 1</div>
+        <div class="fc-term" id="fc-term">Loading...</div>
+        <div class="fc-hint">انقر للكشف عن التعريف 👆</div>
+      </div>
+      <div class="flashcard-face flashcard-back" id="fc-back">
+        <div class="fc-back-en" id="fc-back-en"></div>
+        <div class="fc-back-ar" id="fc-back-ar">
+          <span class="ar-lbl">💡 توضيح:</span>
+          <span id="fc-back-ar-text"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fc-nav">
+    <button class="fc-btn" id="fc-prev" onclick="prevCard()">→ السابق</button>
+    <button class="fc-btn primary" onclick="flipCard()">قلب البطاقة ↕</button>
+    <button class="fc-btn" id="fc-next" onclick="nextCard()">التالي ←</button>
+  </div>
+
+</div>
+</div>
+
+<!-- ========================================================
+     القسم الثالث: الاختبارات القصيرة
+======================================================== -->
+<div id="quizzes-tab" class="tab-content">
+<div class="section-wrap">
+  <div class="quiz-score-bar">
+    <span class="quiz-score-val" id="quiz-score">0</span>
+    <div>
+      <div class="quiz-score-lbl">مجموع الإجابات الصحيحة</div>
+      <div class="quiz-score-lbl" id="quiz-total-lbl">من 0 سؤال تم الإجابة</div>
+    </div>
+  </div>
+  <div id="quizzes-container">
+    <!-- يُولَّد بـ JS -->
+  </div>
+</div>
+</div>
+
+<!-- ========================================
+     الفوتر
+======================================== -->
+<footer class="site-footer">
+  <div class="footer-name">⚡ تم تطويره بواسطة: Mousa Albher</div>
+  <div class="footer-sub">منصة تعليمية تفاعلية — Software Modeling & Analysis | 2025-2026</div>
+  <a class="ig-btn" href="https://www.instagram.com/h00.u?igsh=bjMybnE3MmlneWQx" target="_blank" rel="noopener">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+    </svg>
+    تواصل مع المطور عبر Instagram
+  </a>
+</footer>
+
+
+<script>
+/* ==============================================================
+   هيكل البيانات الرئيسي — جميع محتوى الملزمة
+   THEORETICAL_DATA: مصفوفة كاملة بكل المحاضرات والمفاهيم
+============================================================== */
+const THEORETICAL_DATA = [
+
+  /* ---- الأسبوع 1 - المحاضرة 1 & 2: مقدمة ومبادئ النمذجة ---- */
+  {
+    week: 1,
+    lecNum: "L1-2",
+    title: "Modeling Principles",
+    subtitle: "مبادئ النمذجة",
+    concepts: [
+      {
+        term: "Software (البرمجيات)",
+        definition: "Computer programs and associated documentation such as requirements, design models and user manuals. Software products may be developed for a particular customer or may be developed for a general market.",
+        arabic: "البرمجيات هي البرامج الحاسوبية مع كل الوثائق المصاحبة لها (المتطلبات، نماذج التصميم، أدلة المستخدم). تُطوَّر إما لعميل بعينه (مخصصة) أو للسوق العام (عامة).",
+        diagram: null
+      },
+      {
+        term: "Model",
+        definition: "A model is an abstraction or simplification of a software component. Modeling of software is becoming a pervasive technique to help software engineers understand, engineer, and communicate aspects of the software to appropriate stakeholders.",
+        arabic: "النموذج هو تجريد أو تبسيط لمكوّن برمجي. نستخدم النماذج لتسهيل الفهم والتواصل بين المطورين وأصحاب المصلحة (كالمستخدم والمطوّر والمُقيِّم). مثل خريطة المدينة — ليست المدينة الحقيقية لكنها كافية للتوجّه.",
+        diagram: null
+      },
+      {
+        term: "Modeling Principles (Three General)",
+        definition: "1) Modeling the essentials: good models do not usually represent every aspect. 2) Provide perspective: modeling provides views using defined rules. 3) Enable Effective Communications: modeling employs application domain vocabulary.",
+        arabic: "ثلاثة مبادئ أساسية للنمذجة:\n① نمذجة الجوهر فقط (لا تمثّل كل شيء)\n② تقديم منظور محدد (كل نموذج له زاوية نظر)\n③ تمكين التواصل الفعّال (باستخدام لغة المجال)",
+        diagram: null
+      },
+      {
+        term: "Properties of Models",
+        definition: "Completeness: all requirements have been implemented. Consistency: no conflicting requirements. Correctness: the model satisfies its requirements and is free of defects.",
+        arabic: "خصائص النموذج الجيد:\n• الاكتمال (Completeness): يغطي جميع المتطلبات\n• الاتساق (Consistency): لا تناقض بين متطلباته\n• الصواب (Correctness): خالٍ من الأخطاء ومطابق للمواصفات",
+        diagram: null
+      },
+      {
+        term: "System Modeling",
+        definition: "System modeling is the process of developing abstract models of a system, with each model presenting a different view or perspective of that system. Now almost always based on UML notations.",
+        arabic: "نمذجة النظام: عملية بناء نماذج مجردة لنظام ما، حيث يُقدّم كل نموذج منظوراً مختلفاً. أصبحت UML (Unified Modeling Language) هي اللغة الموحّدة للنمذجة.",
+        diagram: null
+      },
+      {
+        term: "System Perspectives (4 Views)",
+        definition: "External perspective (context/environment), Interaction perspective (interactions between system and environment), Structural perspective (organization of the system), Behavioral perspective (dynamic behavior and response to events).",
+        arabic: "أربعة منظورات لنمذجة النظام:\n① خارجي: السياق والبيئة المحيطة\n② تفاعلي: العلاقات بين النظام وبيئته\n③ هيكلي: تنظيم وبنية النظام\n④ سلوكي: السلوك الديناميكي والاستجابة للأحداث",
+        diagram: null
+      },
+      {
+        term: "Generalization",
+        definition: "An everyday technique to manage complexity by placing entities in more general classes (animals, cars, etc.) and learning characteristics of classes. In OOP, implemented using class inheritance mechanisms.",
+        arabic: "التعميم: تقنية لإدارة التعقيد بتصنيف الكائنات في فئات عامة. في البرمجة الكائنية يُنفَّذ عبر الوراثة (Inheritance). مثال: 'كلب' و'قطة' يرثان خصائص فئة 'حيوان'.",
+        diagram: null
+      },
+      {
+        term: "Abstraction",
+        definition: "Many levels of abstraction exist. At the highest level, a solution is stated in broad terms using the language of the problem environment. At the lowest level, it is stated in a manner that can be directly implemented.",
+        arabic: "التجريد: تعدد مستويات التفكير. في المستوى الأعلى نصف الحل بلغة المشكلة، وفي المستوى الأدنى نصفه بشكل قابل للتنفيذ المباشر. كالخرائط: خريطة البلد ≠ خريطة الشارع.",
+        diagram: null
+      },
+      {
+        term: "Component Composition",
+        definition: "The process of assembling components to create a system. Involves integrating components with each other and with the component infrastructure. May require writing adaptors to reconcile different component interfaces.",
+        arabic: "تركيب المكوّنات: عملية 'توصيل' المكوّنات ببعضها لبناء نظام. تشبه توصيل قطع LEGO. عند استخدام مكوّنات جاهزة قد نحتاج محوّلات (Adaptors) لتوافق الواجهات المختلفة.",
+        diagram: null
+      },
+      {
+        term: "Types of Component Composition",
+        definition: "Sequential: components executed in sequence. Hierarchical: one component calls services of another. Additive: interfaces of two components put together to create a new component.",
+        arabic: "أنواع تركيب المكوّنات:\n① تسلسلي (Sequential): تنفيذ واحد تلو الآخر\n② هرمي (Hierarchical): مكوّن يستدعي خدمة مكوّن آخر\n③ إضافي (Additive): دمج واجهتين لإنشاء مكوّن جديد",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "Which of the following is NOT one of the three general modeling principles?",
+        opts: ["Modeling the essentials", "Enable Effective Communications", "Maximize code reuse", "Provide perspective"],
+        answer: 2,
+        explain: "The three principles are: Modeling the essentials, Provide perspective, Enable Effective Communications."
+      },
+      {
+        q: "What does 'Completeness' mean as a model property?",
+        opts: ["The model has no syntax errors", "All requirements have been implemented and verified", "The model uses only UML notation", "The model covers only essential features"],
+        answer: 1,
+        explain: "Completeness = the degree to which all requirements have been implemented and verified within the model."
+      },
+      {
+        q: "In Object-Oriented Programming, Generalization is implemented using:",
+        opts: ["Polymorphism", "Encapsulation", "Inheritance mechanisms", "Component Composition"],
+        answer: 2,
+        explain: "Generalization in OOP languages like Java is implemented using the class inheritance mechanisms."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 2-3: Preconditions, Postconditions, Invariants ---- */
+  {
+    week: 2,
+    lecNum: "L3",
+    title: "Preconditions, Postconditions & Invariants",
+    subtitle: "شروط ما قبل وبعد التنفيذ والثوابت",
+    concepts: [
+      {
+        term: "Preconditions",
+        definition: "A set of conditions that must be satisfied prior to execution of the function or method. If these preconditions do not hold prior to execution, the function or method may produce erroneous results. 'The precondition is a condition that must be true when the operation begins to execute.'",
+        arabic: "الشروط المسبقة: مجموعة من الشروط يجب أن تتحقق قبل تنفيذ الدالة أو العملية. إذا لم تتحقق، قد تعطي الدالة نتائج خاطئة. مثال: قبل السحب من ATM → يجب أن يكون الرصيد ≥ المبلغ المطلوب.",
+        diagram: null
+      },
+      {
+        term: "Postconditions",
+        definition: "A set of conditions guaranteed to be true after the function or method has executed successfully. Typically represent how the state of the software has changed, how parameters have changed, or how the return value has been affected. 'A use case postcondition represents what must be true when the use case has completed.'",
+        arabic: "الشروط اللاحقة: ما يجب أن يكون صحيحاً بعد انتهاء الدالة من التنفيذ بنجاح. تصف التغييرات التي حدثت على حالة النظام أو القيم المُعادة. مثال: بعد السحب → الرصيد انخفض بمقدار المبلغ المسحوب.",
+        diagram: null
+      },
+      {
+        term: "Invariants",
+        definition: "A set of conditions within the operational environment that persist (do not change) before and after execution of the function or method. A class invariant is a condition that every object of that class must satisfy at all times.",
+        arabic: "الثوابت: شروط لا تتغير أبداً — قبل التنفيذ وبعده. ثابت الفئة (Class Invariant) هو شرط يجب أن يتحقق في كل كائن من تلك الفئة في جميع الأوقات. مثال للمستطيل: دائماً w1=w2 وh1=h2.",
+        diagram: null
+      },
+      {
+        term: "Rectangle Example (Invariant, Pre, Post)",
+        definition: "Rectangle with sides w1,w2,h1,h2 and ScaleHoriz(ScaleFactor) operation: Invariant: w1=w2, h1=h2. Precondition: maxwidth >= w1*ScaleFactor. Postcondition: w1 = w1_old * ScaleFactor.",
+        arabic: "مثال المستطيل:\n• الثابت: الأضلاع المتقابلة متساوية دائماً\n• الشرط المسبق: لا يتجاوز العرض الجديد الحد الأقصى\n• الشرط اللاحق: العرض الجديد = القديم × معامل التحجيم",
+        diagram: null
+      },
+      {
+        term: "Object Constraint Language (OCL)",
+        definition: "The Object Constraint Language (OCL) has been designed to define constraints that are associated with UML models. It is based around the notion of pre and post condition specification — common to many formal methods.",
+        arabic: "OCL: لغة مصممة لتعريف القيود المرتبطة بنماذج UML. تُعبّر عن الشروط المسبقة والشروط اللاحقة بشكل رسمي. تُستخدم لتوثيق سلوك النظام بدقة رياضية.",
+        diagram: null
+      },
+      {
+        term: "Photo Library Conditions (OCL Example)",
+        definition: "There must not be a photograph with the same identifier already in the library. The library must exist. Each new entry increases the size of the library by 1. If you retrieve using the same identifier you get back the same photo.",
+        arabic: "مثال مكتبة الصور (تطبيق OCL):\n① لا صورتان بنفس المعرّف\n② يجب أن تكون المكتبة موجودة\n③ كل إضافة ترفع الحجم بمقدار 1\n④ الاسترجاع بالمعرّف يُعيد نفس الصورة",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "A Precondition is:",
+        opts: [
+          "A condition that must be true AFTER the operation completes",
+          "A condition that must be true BEFORE the operation begins",
+          "A condition that never changes during execution",
+          "A formal specification language for UML"
+        ],
+        answer: 1,
+        explain: "Precondition = must be true BEFORE execution begins."
+      },
+      {
+        q: "A Class Invariant is:",
+        opts: [
+          "A method that initializes the class",
+          "A condition that every object of that class must satisfy at ALL times",
+          "A postcondition that applies globally",
+          "A requirement that changes per operation"
+        ],
+        answer: 1,
+        explain: "A class invariant must be satisfied by every object of that class at all times."
+      },
+      {
+        q: "What is OCL used for?",
+        opts: [
+          "Compiling Java programs",
+          "Generating UML diagrams automatically",
+          "Defining constraints associated with UML models",
+          "Testing software at runtime"
+        ],
+        answer: 2,
+        explain: "OCL (Object Constraint Language) defines constraints associated with UML models based on pre/post conditions."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 3: النماذج الرياضية والتوصيف الرسمي ---- */
+  {
+    week: 3,
+    lecNum: "L4",
+    title: "Mathematical Models & Formal Notation",
+    subtitle: "النماذج الرياضية والتوصيف الرسمي",
+    concepts: [
+      {
+        term: "Formal Specification",
+        definition: "Formal specification is part of formal methods — all based on mathematical representation and analysis of software. Formal methods include: Formal specification, Specification analysis and proof, Transformational development, Program verification.",
+        arabic: "التوصيف الرسمي: جزء من المنهجيات الرسمية القائمة على التمثيل الرياضي. يشمل: التوصيف الرسمي، تحليل المواصفة والإثبات، التطوير التحويلي، التحقق من البرامج. الهدف: تقليل الأخطاء في الأنظمة الحرجة.",
+        diagram: null
+      },
+      {
+        term: "Formal Specification in Software Process",
+        definition: "Specification and design are inextricably intermingled. Architectural design is essential to structure a specification and the specification process. Formal specifications are expressed in a mathematical notation with precisely defined vocabulary, syntax and semantics.",
+        arabic: "التوصيف الرسمي في العملية البرمجية: التوصيف والتصميم مترابطان. يُعبَّر عن المواصفات الرسمية بتدوين رياضي له مفردات ونحو ودلالات محددة بدقة.",
+        diagram: {
+          title: "Formal Specification in a Plan-Based Software Process",
+          page: "صفحة 5 - L4"
+        }
+      },
+      {
+        term: "Benefits of Formal Specification",
+        definition: "1) Requires detailed analysis of requirements — helps detect problems. 2) Can be automatically analyzed to discover inconsistencies. 3) Can transform formal specification into a 'correct' program. 4) Program testing costs may be reduced if formally verified.",
+        arabic: "فوائد التوصيف الرسمي:\n① كشف التناقضات والثغرات في المتطلبات\n② التحليل الآلي للمواصفة\n③ توليد برنامج صحيح من المواصفة\n④ تقليل تكاليف الاختبار عبر التحقق الرسمي",
+        diagram: null
+      },
+      {
+        term: "Acceptance of Formal Methods (Limitations)",
+        definition: "Limited impact on practical software development: problem owners cannot understand formal spec; costs easy to assess but benefits harder; software engineers unfamiliar with this approach; hard to scale up to large systems.",
+        arabic: "لماذا لم تنتشر المنهجيات الرسمية؟\n① أصحاب المشاريع لا يفهمون المواصفة الرياضية\n② من الصعب قياس فوائدها مقارنةً بتكاليفها\n③ المهندسون غير مألوفين بها\n④ صعبة التوسع لأنظمة ضخمة",
+        diagram: null
+      },
+      {
+        term: "Use of Formal Methods",
+        definition: "Principal benefits are in reducing the number of faults in systems. Main area of applicability is in critical systems engineering (aerospace, medical devices, nuclear). In this area, formal methods are most likely to be cost-effective because high system failure costs must be avoided.",
+        arabic: "أين تُستخدم المنهجيات الرسمية؟ في الأنظمة الحرجة: الطيران، الأجهزة الطبية، المفاعلات النووية. هناك تكون تكلفتها مبررة لأن تكلفة الفشل أعلى بكثير.",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "Formal methods are MOST cost-effective in which type of systems?",
+        opts: ["E-commerce websites", "Social media platforms", "Critical systems engineering (aerospace, medical)", "Mobile gaming applications"],
+        answer: 2,
+        explain: "Formal methods are most cost-effective in critical systems where failure costs are extremely high."
+      },
+      {
+        q: "Which of the following is NOT a formal method?",
+        opts: ["Formal specification", "Program verification", "Agile retrospectives", "Transformational development"],
+        answer: 2,
+        explain: "Agile retrospectives are NOT part of formal methods. Formal methods are mathematical: specification, verification, transformational development, proof."
+      },
+      {
+        q: "A major limitation of formal methods is:",
+        opts: [
+          "They produce too many test cases",
+          "Problem owners cannot understand formal specifications",
+          "They require too many UML diagrams",
+          "They are only applicable to web systems"
+        ],
+        answer: 1,
+        explain: "A key limitation: problem owners (clients) cannot understand a formal specification and so cannot assess if it accurately represents their requirements."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 4-5: Information Modeling & Behavioral Modeling ---- */
+  {
+    week: 4,
+    lecNum: "L5",
+    title: "Information Modeling & Behavioral Modeling",
+    subtitle: "نمذجة المعلومات والنمذجة السلوكية",
+    concepts: [
+      {
+        term: "Information Modeling",
+        definition: "Provides focus on data and information. An abstract representation that identifies and defines a set of concepts, properties, relations, and constraints on data entities. The semantic/conceptual information model includes only the concepts needed to conceptualize the real-world view of the information.",
+        arabic: "نمذجة المعلومات: تركّز على البيانات. تُحدّد المفاهيم والخصائص والعلاقات والقيود على كيانات البيانات. الهدف: تمثيل الواقع بصورة مجردة تشمل فقط ما نحتاجه.",
+        diagram: null
+      },
+      {
+        term: "Entity-Relationship Diagram (ERD)",
+        definition: "ERD provides an essential foundation for the development of relational models used in many database systems. They model the detailed form of data stored in a system or the relationships between complex design 'objects'.",
+        arabic: "مخطط الكيان-العلاقة (ERD): أساس قواعد البيانات العلائقية. يُستخدم لنمذجة البيانات المخزنة وعلاقاتها. المصطلحات: كيان (Entity)، علاقة (Relationship)، صفة (Attribute).",
+        diagram: {
+          title: "ERD Notation & Example",
+          page: "صفحة تدوينات وأمثلة ERD - L5"
+        }
+      },
+      {
+        term: "ERD Definitions",
+        definition: "Entities: real-world objects with common properties. Relationship: a class of elementary facts relating two or more entities. Attributes: classes of values that represent atomic properties of either entities or relationships. Provides data-modeling viewpoint.",
+        arabic: "مصطلحات ERD:\n• الكيانات (Entities): أشياء حقيقية لها خصائص مشتركة\n• العلاقات (Relationships): الروابط بين الكيانات\n• الصفات (Attributes): القيم التي تصف خصائص الكيانات",
+        diagram: null
+      },
+      {
+        term: "Class Diagrams (UML)",
+        definition: "Class diagrams are used when developing an object-oriented system model to show the classes in a system and the associations between these classes. An association is a link between classes that indicates some relationship. An object class is a general definition of one kind of system object.",
+        arabic: "مخططات الفئات (Class Diagrams): تُظهر الفئات وعلاقاتها في النظام الكائني التوجه. الفئة = تعريف عام لنوع من كائنات النظام. الارتباط (Association) = رابط يدل على وجود علاقة بين فئتين.",
+        diagram: {
+          title: "UML Class Diagram — Classes and Associations Example",
+          page: "صفحة 9 - L5"
+        }
+      },
+      {
+        term: "Behavioral Modeling",
+        definition: "Behavioral models identify and define the functions of the software being modeled. Three basic forms: state machines (collection of states, events, transitions), control-flow models (how events activate/deactivate processes), dataflow models (data moving through processes toward stores or sinks).",
+        arabic: "النمذجة السلوكية: تُعرّف وظائف البرنامج من خلال ثلاثة أشكال:\n① آلة الحالة: حالات + أحداث + انتقالات\n② نموذج تدفق التحكم: كيف تُفعَّل العمليات\n③ نموذج تدفق البيانات: مسار البيانات عبر العمليات",
+        diagram: null
+      },
+      {
+        term: "State Machine Models",
+        definition: "Model the behaviour of the system in response to external and internal events. Show the system's responses to stimuli — often used for real-time systems. System states are shown as nodes and events as arcs between nodes. When an event occurs, the system moves from one state to another.",
+        arabic: "نماذج آلة الحالة: تُمثّل سلوك النظام عند حدوث أحداث. الحالات = عُقد. الأحداث = أقواس بين العُقد. عند حدوث حدث ينتقل النظام من حالة لأخرى. تُستخدم كثيراً في أنظمة الوقت الفعلي.",
+        diagram: {
+          title: "State Diagram of a Microwave Oven",
+          page: "صفحة 15 - L5"
+        }
+      },
+      {
+        term: "Microwave Oven States",
+        definition: "States: Waiting (shows current time), Half power (300W), Full power (600W), Set time (cooking time), Disabled (door open, safety), Enabled (door closed, ready), Operation (cooking in progress, buzzer on completion).",
+        arabic: "حالات الميكروويف:\n• Waiting: ينتظر — يعرض الوقت\n• Half power: طاقة 300 واط\n• Full power: طاقة 600 واط\n• Set time: ضبط وقت الطهي\n• Disabled: معطّل (الباب مفتوح)\n• Enabled: جاهز (الباب مغلق)\n• Operation: يعمل — يعدّ عكسياً",
+        diagram: null
+      },
+      {
+        term: "Fault-Tree Analysis (FTA)",
+        definition: "A deductive top-down technique. Put the risk or hazard at the root of the tree and identify the system states that could lead to that hazard. Link states with 'and' or 'or' conditions. Goal: minimise single causes of system failure.",
+        arabic: "تحليل شجرة الأعطال: تقنية استنتاجية من أعلى لأسفل. تضع الخطر في جذر الشجرة وتحدد الحالات التي تؤدي إليه. تربط بشروط AND/OR. الهدف: تقليل نقاط الفشل الفردية.",
+        diagram: {
+          title: "Software Fault Tree Example",
+          page: "صفحة 19 - L5"
+        }
+      }
+    ],
+    quizzes: [
+      {
+        q: "In an ERD, what is an 'Attribute'?",
+        opts: [
+          "A real-world object with common properties",
+          "A link between two entities",
+          "A class of values representing atomic properties of entities or relationships",
+          "A foreign key constraint"
+        ],
+        answer: 2,
+        explain: "Attributes are classes of values that represent atomic properties of either entities or relationships."
+      },
+      {
+        q: "State Machine Models are typically used for:",
+        opts: ["Database schema design", "Real-time systems modeling", "Code documentation", "Formal proof of correctness"],
+        answer: 1,
+        explain: "State machine models show system responses to stimuli and are often used for modelling real-time systems."
+      },
+      {
+        q: "Fault-Tree Analysis is described as a:",
+        opts: [
+          "Bottom-up inductive technique",
+          "Top-down deductive technique",
+          "Horizontal cross-sectional technique",
+          "Random testing technique"
+        ],
+        answer: 1,
+        explain: "Fault-Tree Analysis is a deductive top-down technique starting from the hazard at the root."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 6: Behavioral Modeling (cont.) ---- */
+  {
+    week: 6,
+    lecNum: "L6",
+    title: "Behavioral Modeling (Extended)",
+    subtitle: "النمذجة السلوكية — تكملة",
+    concepts: [
+      {
+        term: "Behavioral Models (Two Types of Stimuli)",
+        definition: "Behavioral models show what happens when a system responds to a stimulus. Two types of stimuli: (1) Data — some data arrives that has to be processed. (2) Events — some event happens that triggers system processing. Events may have associated data.",
+        arabic: "النماذج السلوكية تستجيب لنوعين من المحفّزات:\n① البيانات (Data): بيانات تصل للمعالجة\n② الأحداث (Events): حدث يُشغّل العملية (قد يكون مصحوباً ببيانات)",
+        diagram: null
+      },
+      {
+        term: "Use Case Analysis",
+        definition: "Use cases model the interactions between a system and its actors (users or other systems). Each use case defines a sequence of actions that provides a measurable value to an actor. A use case postcondition represents what must be true when the use case has completed.",
+        arabic: "تحليل حالات الاستخدام: تُصوّر التفاعلات بين النظام والمستخدمين. كل حالة استخدام تُعرّف تسلسلاً من الإجراءات يُقدّم قيمة للمستخدم. تُستخدم في مرحلة تحليل المتطلبات.",
+        diagram: null
+      },
+      {
+        term: "Interaction Diagrams",
+        definition: "Show interactions between system objects, depicting how objects collaborate and communicate. Include sequence diagrams (time-ordered interactions) and collaboration diagrams.",
+        arabic: "مخططات التفاعل: تُظهر كيف تتفاعل كائنات النظام وتتواصل مع بعضها. تشمل مخططات التسلسل (Sequence Diagrams) التي تُرتّب التفاعلات زمنياً.",
+        diagram: null
+      },
+      {
+        term: "Failure Modes and Effects Analysis (FMEA)",
+        definition: "A systematic technique for identifying all possible failure modes in a system, determining their effects on system operation, and classifying their severity. Used to improve system reliability and safety.",
+        arabic: "تحليل أنماط الفشل وتأثيراتها (FMEA): تقنية منهجية لتحديد جميع أنماط الفشل الممكنة في النظام، وتحديد تأثيرها، وتصنيف خطورتها. يُستخدم لتحسين الموثوقية والأمان.",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "What are the two types of stimuli in behavioral models?",
+        opts: [
+          "Hardware and Software",
+          "Data and Events",
+          "Inputs and Outputs",
+          "Triggers and Responses"
+        ],
+        answer: 1,
+        explain: "Behavioral models respond to two types of stimuli: Data (arrives for processing) and Events (triggers system processing)."
+      },
+      {
+        q: "Use Case postcondition represents:",
+        opts: [
+          "What must be true BEFORE the use case starts",
+          "What invariant must hold throughout",
+          "What must be true WHEN the use case has completed",
+          "The actors involved in the use case"
+        ],
+        answer: 2,
+        explain: "A use case postcondition represents what must be true when the use case has completed."
+      },
+      {
+        q: "FMEA stands for:",
+        opts: [
+          "Formal Methods for Enterprise Architecture",
+          "Failure Modes and Effects Analysis",
+          "Feature Modeling and Engineering Approach",
+          "Functional Model Evaluation Assessment"
+        ],
+        answer: 1,
+        explain: "FMEA = Failure Modes and Effects Analysis — a technique for identifying failure modes and their effects."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 7: Architectural Modeling ---- */
+  {
+    week: 7,
+    lecNum: "L7",
+    title: "Architectural Modeling",
+    subtitle: "النمذجة المعمارية",
+    concepts: [
+      {
+        term: "Software Architecture",
+        definition: "The design process for identifying the subsystems making up a system and the framework for sub-system control and communication is architectural design. The output is a description of the software architecture.",
+        arabic: "معمارية البرمجيات: عملية تحديد الأنظمة الفرعية والإطار الذي تتحكم به وتتواصل من خلاله. الناتج: وثيقة تصف البنية المعمارية للبرنامج.",
+        diagram: null
+      },
+      {
+        term: "Use of Architectural Models",
+        definition: "1) Facilitating discussion about system design — high-level view useful for stakeholders. 2) Documenting an architecture that has been designed — complete system model showing components, interfaces, and connections.",
+        arabic: "استخدامات النماذج المعمارية:\n① تسهيل النقاش: منظور عالي المستوى مفهوم للجميع\n② التوثيق: نموذج كامل يُظهر المكوّنات وواجهاتها وصلاتها",
+        diagram: null
+      },
+      {
+        term: "4 Views Model of Software Architecture",
+        definition: "Logical view: key abstractions as objects/classes. Process view: run-time interacting processes. Development view: software decomposition for development. Physical view: system hardware and distribution of software components across processors.",
+        arabic: "نموذج الأربعة منظورات:\n① المنطقي: التجريدات الرئيسية كفئات\n② العمليات: العمليات المتفاعلة أثناء التشغيل\n③ التطوير: تحليل البرنامج لأغراض التطوير\n④ الفيزيائي: الأجهزة وتوزيع المكوّنات",
+        diagram: null
+      },
+      {
+        term: "Architectural Patterns",
+        definition: "Patterns are a means of representing, sharing and reusing knowledge. An architectural pattern is a stylized description of good design practice, tried and tested in different environments. Include information about when they are and are not useful.",
+        arabic: "الأنماط المعمارية: وصف منمّط لأفضل ممارسات التصميم، مجرّبة في بيئات مختلفة. تُمثّل وسيلة لمشاركة المعرفة وإعادة استخدامها.",
+        diagram: null
+      },
+      {
+        term: "MVC Pattern (Model-View-Controller)",
+        definition: "Separates presentation and interaction from the system data. Three logical components: Model (manages system data and operations), View (defines how data is presented), Controller (manages user interaction and passes to View and Model). Used when there are multiple ways to view and interact with data.",
+        arabic: "نمط MVC: يفصل العرض والتفاعل عن بيانات النظام.\n• Model: يُدير البيانات والعمليات\n• View: يُحدد كيفية عرض البيانات للمستخدم\n• Controller: يُدير تفاعل المستخدم ويوجّه الطلبات\nيُستخدم عند الحاجة لعدة طرق لعرض البيانات.",
+        diagram: {
+          title: "MVC Pattern Organization Diagram (Fig 2)",
+          page: "صفحة معمارية MVC - L7"
+        }
+      },
+      {
+        term: "Layered Architecture Pattern",
+        definition: "Organizes the system into layers with related functionality. A layer provides services to the layer above it; lowest-level layers represent core services. Used when building on existing systems, when development is spread across teams, or when multi-level security is required. Allows replacement of entire layers while maintaining interface.",
+        arabic: "النمط الطبقي: يُنظّم النظام في طبقات، كل طبقة تُقدّم خدمات للطبقة فوقها.\nمزاياه: استبدال طبقة كاملة مع الحفاظ على الواجهة.\nعيوبه: صعوبة الفصل النظيف بين الطبقات، وتدهور الأداء.",
+        diagram: {
+          title: "Generic Layered Architecture (Fig 4)",
+          page: "صفحة معمارية طبقية - L7"
+        }
+      },
+      {
+        term: "Repository Architecture Pattern",
+        definition: "All data in a system is managed in a central repository accessible to all system components. Components do not interact directly, only through the repository. Used when large volumes of information must be stored long-term or when inclusion of data triggers an action.",
+        arabic: "نمط المستودع: جميع البيانات في مستودع مركزي مشترك. المكوّنات تتواصل عبر المستودع فقط.\nمزاياه: استقلالية المكوّنات، إدارة متسقة للبيانات.\nعيوبه: نقطة فشل واحدة، احتمالية انعدام الكفاءة.",
+        diagram: {
+          title: "Repository Architecture for an IDE (Fig 1)",
+          page: "صفحة نمط المستودع - L7"
+        }
+      },
+      {
+        term: "Client-Server Architecture Pattern",
+        definition: "Functionality organized into services, each delivered from a separate server. Clients are users of services and access servers to make use of them. Each service is a single point of failure. Used when shared database data must be accessed from a range of locations.",
+        arabic: "نمط العميل-الخادم: وظائف النظام مُوزَّعة كخدمات على خوادم مستقلة. العملاء يطلبون الخدمات من الخوادم.\nمزاياه: توزيع الخوادم على شبكة.\nعيوبه: كل خادم نقطة فشل واحدة.",
+        diagram: {
+          title: "Client-Server Architecture for a Film Library (Fig 2)",
+          page: "صفحة نمط العميل-الخادم - L7"
+        }
+      },
+      {
+        term: "Architectural Design Decisions",
+        definition: "Is there a generic application architecture? How will the system be distributed? What architectural styles are appropriate? How will the system be decomposed into modules? What control strategy should be used? How will the architectural design be evaluated? How should the architecture be documented?",
+        arabic: "قرارات التصميم المعماري تشمل:\n• هل هناك معمارية عامة قابلة للاستخدام؟\n• كيف يُوزَّع النظام؟\n• ما أسلوب التحكم المناسب؟\n• كيف يُوثَّق التصميم؟",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "In the MVC pattern, the Controller component is responsible for:",
+        opts: [
+          "Managing system data and associated operations",
+          "Defining and managing how data is presented",
+          "Managing user interaction and passing it to View and Model",
+          "Storing data in a central repository"
+        ],
+        answer: 2,
+        explain: "The Controller manages user interaction (key presses, mouse clicks) and passes these to the View and Model."
+      },
+      {
+        q: "The Repository architectural pattern is best used when:",
+        opts: [
+          "The system needs multiple user interfaces",
+          "Large volumes of information must be stored for a long time",
+          "Components need to communicate directly with each other",
+          "The system is deployed across multiple physical locations"
+        ],
+        answer: 1,
+        explain: "Use Repository when large volumes of information are generated that must be stored for a long time."
+      },
+      {
+        q: "A disadvantage of the Layered architecture is:",
+        opts: [
+          "It cannot be used with existing systems",
+          "It always produces single points of failure",
+          "Performance can be a problem due to multiple levels of interpretation",
+          "It does not support multi-level security"
+        ],
+        answer: 2,
+        explain: "Performance can be a problem because of multiple levels of interpretation of a service request as it is processed at each layer."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 8: Domain Engineering ---- */
+  {
+    week: 8,
+    lecNum: "L8",
+    title: "Domain Engineering",
+    subtitle: "هندسة المجال",
+    concepts: [
+      {
+        term: "Domain Engineering (DE)",
+        definition: "The activity of collecting, organizing, and storing past experience in building systems or parts of systems in a particular domain in the form of reusable assets (reusable workproducts), as well as providing an adequate means for reusing these assets when building new systems.",
+        arabic: "هندسة المجال: نشاط يجمع ويُنظّم ويخزّن الخبرات السابقة في بناء أنظمة ضمن مجال معين كـ'أصول قابلة لإعادة الاستخدام'. الهدف: إعادة استخدام هذه الأصول عند بناء أنظمة جديدة.",
+        diagram: null
+      },
+      {
+        term: "Three Phases of Domain Engineering",
+        definition: "1) Domain Analysis: Select and define the domain; collect relevant domain information and integrate it into a coherent domain model. 2) Domain Design: Develop an architecture for the systems in the domain. 3) Domain Implementation: Apply technologies to implement components, generators, and reuse infrastructure.",
+        arabic: "مراحل هندسة المجال الثلاث:\n① تحليل المجال: تحديد المجال وجمع المعلومات وبناء نموذج المجال\n② تصميم المجال: تطوير المعمارية للأنظمة في المجال\n③ تنفيذ المجال: تطبيق التقنيات وبناء المكوّنات والبنية التحتية",
+        diagram: {
+          title: "Process Components of Domain Engineering",
+          page: "جدول مراحل DE - L8"
+        }
+      },
+      {
+        term: "Domain Analysis",
+        definition: "Purpose: Select and define the domain of focus AND collect relevant domain information to integrate into a coherent domain model. Sources: existing systems, domain experts, handbooks, textbooks, prototyping, experiments, known requirements on future systems.",
+        arabic: "تحليل المجال يشمل:\n① تحديد المجال وحدوده\n② نمذجة المجال\nمصادر المعلومات: الأنظمة الموجودة، الخبراء، الكتب، النماذج الأولية، التجارب.",
+        diagram: null
+      },
+      {
+        term: "Domain Model",
+        definition: "An explicit representation of the common and variable properties of the systems in a domain and the dependencies between the variable properties.",
+        arabic: "نموذج المجال: تمثيل صريح للخصائص المشتركة والمتغيرة في أنظمة المجال والتبعيات بين الخصائص المتغيرة.",
+        diagram: null
+      },
+      {
+        term: "Domain Design",
+        definition: "Purpose: develop an architecture for the systems in the domain. Software architecture involves: description of elements, interactions among elements, patterns that guide composition, and constraints on these patterns.",
+        arabic: "تصميم المجال: الغرض هو تطوير معمارية للأنظمة في المجال. يشمل: وصف العناصر، التفاعلات، الأنماط الموجِّهة، والقيود.",
+        diagram: null
+      },
+      {
+        term: "Domain Implementation",
+        definition: "Apply appropriate technologies to implement components, generators for automatic component assembly, reuse infrastructure (component retrieval, qualification, dissemination), and application production process.",
+        arabic: "تنفيذ المجال: تطبيق التقنيات لبناء المكوّنات، والمولِّدات للتجميع الآلي، والبنية التحتية لإعادة الاستخدام.",
+        diagram: null
+      },
+      {
+        term: "Application Engineering",
+        definition: "The process of building systems based on the results of Domain Engineering. During requirements analysis, we use the existing domain model and select requirements from it matching customer needs. Custom requirements not in the domain model require custom development. Then assemble from reusable and custom-developed components.",
+        arabic: "هندسة التطبيقات: بناء أنظمة بالاستناد إلى نتائج هندسة المجال. نختار من نموذج المجال ما يلبّي احتياجات العميل، وما لم يُوجد في النموذج يُطوَّر خصيصاً.",
+        diagram: null
+      },
+      {
+        term: "SE vs Domain Engineering",
+        definition: "Conventional Software Engineering concentrates on satisfying requirements for a SINGLE system. Domain Engineering concentrates on providing REUSABLE SOLUTIONS for FAMILIES of systems.",
+        arabic: "الفرق الجوهري:\n• هندسة البرمجيات التقليدية: نظام واحد\n• هندسة المجال: عائلة من الأنظمة → حلول قابلة لإعادة الاستخدام",
+        diagram: null
+      },
+      {
+        term: "FODA (Feature-Oriented Domain Analysis)",
+        definition: "Two phases: 1) Context Analysis: defines boundaries of the domain — produces context model with structure and context diagrams. 2) Domain Modeling: produces a domain model capturing commonalities and variabilities.",
+        arabic: "تحليل المجال الموجّه بالسمات (FODA):\n① تحليل السياق: تحديد حدود المجال\n② نمذجة المجال: إنتاج نموذج المجال",
+        diagram: null
+      },
+      {
+        term: "ODM (Organization Domain Modeling)",
+        definition: "Three phases: 1) Plan Domain (scoping/planning = Context Analysis in FODA). 2) Model Domain (= Domain Modeling in FODA). 3) Engineer Asset Base (produce architecture + implement reusable assets = Domain Design + Implementation).",
+        arabic: "نمذجة المجال التنظيمي (ODM):\n① تخطيط المجال (Plan Domain)\n② نمذجة المجال (Model Domain)\n③ هندسة قاعدة الأصول (Engineer Asset Base)",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "What is the main goal of Domain Engineering?",
+        opts: [
+          "To develop a single high-quality software system",
+          "To collect, organize, and store reusable assets for families of systems",
+          "To document the software architecture of a specific project",
+          "To test software components for correctness"
+        ],
+        answer: 1,
+        explain: "Domain Engineering provides reusable solutions for families of systems, not just a single system."
+      },
+      {
+        q: "In Domain Engineering, Domain Analysis involves:",
+        opts: [
+          "Implementing components and reuse infrastructure",
+          "Developing an architecture for systems in the domain",
+          "Selecting and defining the domain AND building a domain model",
+          "Assembling applications from existing components"
+        ],
+        answer: 2,
+        explain: "Domain Analysis = (1) Select and define the domain, (2) Collect information and build a domain model."
+      },
+      {
+        q: "The 'Engineer Asset Base' phase in ODM corresponds to which DE phases?",
+        opts: [
+          "Domain Analysis only",
+          "Domain Analysis + Domain Design",
+          "Domain Design + Domain Implementation",
+          "Domain Implementation only"
+        ],
+        answer: 2,
+        explain: "Engineer Asset Base = Domain Design + Domain Implementation."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 9: Enterprise Modeling & Embedded Systems ---- */
+  {
+    week: 9,
+    lecNum: "L9",
+    title: "Enterprise Modeling & Embedded Systems",
+    subtitle: "نمذجة المؤسسات والأنظمة المدمجة",
+    concepts: [
+      {
+        term: "Business Process",
+        definition: "A business process is 'a set of logically related tasks performed to achieve a defined business outcome.' Within the business process, people, equipment, material resources, and business procedures are combined to produce a specified result. Every business process has a defined customer who receives the outcome. Business processes cross organizational boundaries.",
+        arabic: "العملية التجارية: مجموعة من المهام المرتبطة منطقياً لتحقيق نتيجة تجارية محددة. تشمل: أشخاصاً، معدات، موارد مادية، وإجراءات. أمثلة: تصميم منتج، تعيين موظف، دفع فواتير.",
+        diagram: null
+      },
+      {
+        term: "RUP (Rational Unified Process) Workflows",
+        definition: "Static workflows: Business modelling (business use cases), Requirements (actors and use cases), Analysis and design (design model), Implementation (structured components), Testing (iterative), Deployment (product release), Configuration management, Project management, Environment.",
+        arabic: "مسارات عمل RUP (العملية الموحّدة العقلانية):\n• نمذجة الأعمال، المتطلبات، التحليل والتصميم\n• التنفيذ، الاختبار، النشر\n• إدارة التهيئة، إدارة المشروع، البيئة",
+        diagram: null
+      },
+      {
+        term: "RUP Good Practices",
+        definition: "1) Develop software iteratively (highest priority first). 2) Manage requirements (document and track changes). 3) Use component-based architectures. 4) Visually model software (UML). 5) Verify software quality. 6) Control changes to software.",
+        arabic: "أفضل ممارسات RUP:\n① تطوير تكراري\n② إدارة المتطلبات\n③ معماريات قائمة على المكوّنات\n④ النمذجة البصرية (UML)\n⑤ التحقق من الجودة\n⑥ التحكم في التغييرات",
+        diagram: null
+      },
+      {
+        term: "Embedded Software",
+        definition: "Computers used to control wide ranges of systems from simple domestic machines to entire manufacturing plants. Software must react to events from hardware and issue control signals. Embedded in system hardware (often ROM). Responds in real time to events from the system's environment.",
+        arabic: "البرمجيات المدمجة: برامج مُدمجة في الأجهزة (غالباً ROM) تتحكم في أنظمة متنوعة من الأجهزة المنزلية البسيطة للمصانع الكاملة. تستجيب للأحداث في الوقت الفعلي.",
+        diagram: null
+      },
+      {
+        term: "Real-Time System Definition",
+        definition: "A real-time system is a software system where the correct functioning of the system depends on the results produced by the system AND the time at which these results are produced. If the system takes too long to respond, the required response may be ineffective.",
+        arabic: "النظام الآني (Real-Time): نظام يعتمد صحته على الناتج ووقت إنتاج ذلك الناتج معاً. التأخر في الاستجابة = فشل في التشغيل. مثال: نظام التحكم في الطائرة لا يتحمل تأخيراً.",
+        diagram: null
+      },
+      {
+        term: "Embedded System Characteristics",
+        definition: "Generally run continuously and do not terminate. Interactions with environment are uncontrollable and unpredictable. Physical limitations (power) may affect design. Direct hardware interaction may be necessary. Safety and reliability issues may dominate system design.",
+        arabic: "خصائص الأنظمة المدمجة:\n• تعمل باستمرار ولا تتوقف\n• تفاعلاتها مع البيئة غير قابلة للتحكم\n• محددات فيزيائية (طاقة) تؤثر على التصميم\n• تفاعل مباشر مع الأجهزة\n• اعتبارات الأمان تسود التصميم",
+        diagram: null
+      },
+      {
+        term: "Reactive Systems",
+        definition: "Given a stimulus, the system must produce a reaction within a specified time. Periodic stimuli: occur at predictable intervals (e.g., temperature sensor polled 10 times/sec). Aperiodic stimuli: occur at unpredictable times (e.g., power failure triggers interrupt).",
+        arabic: "الأنظمة التفاعلية: تستجيب لمحفزات في وقت محدد.\n• دورية (Periodic): تحدث بفترات منتظمة — استطلاع المجس\n• غير دورية (Aperiodic): تحدث بأوقات غير متوقعة — انقطاع الكهرباء",
+        diagram: null
+      },
+      {
+        term: "Process Coordination & Mutual Exclusion",
+        definition: "Processes in a real-time system must be coordinated and share information. Process coordination mechanisms ensure mutual exclusion to shared resources — when one process is modifying a shared resource, other processes should not be able to change that resource.",
+        arabic: "التنسيق بين العمليات والاستبعاد المتبادل: في الأنظمة الآنية تتشارك العمليات الموارد. يجب أن تكون عملية واحدة فقط تُعدّل المورد المشترك في أي وقت. مفهوم أساسي في أنظمة التشغيل.",
+        diagram: {
+          title: "Producer/Consumer Circular Buffer Diagram",
+          page: "صفحة المخزن الحلقي - L9"
+        }
+      }
+    ],
+    quizzes: [
+      {
+        q: "A real-time system's correctness depends on:",
+        opts: [
+          "Only the results it produces",
+          "Only the time at which results are produced",
+          "BOTH the results AND the time at which they are produced",
+          "The number of users accessing the system"
+        ],
+        answer: 2,
+        explain: "A real-time system's correctness depends on BOTH the results produced AND the time at which these results are produced."
+      },
+      {
+        q: "Periodic stimuli in reactive systems are:",
+        opts: [
+          "Stimuli that occur at unpredictable times",
+          "Stimuli that occur at predictable time intervals",
+          "Stimuli that require immediate shutdown",
+          "Stimuli generated only by hardware faults"
+        ],
+        answer: 1,
+        explain: "Periodic stimuli occur at predictable time intervals (e.g., a temperature sensor polled 10 times per second)."
+      },
+      {
+        q: "Mutual exclusion in real-time systems ensures that:",
+        opts: [
+          "All processes run at the same speed",
+          "No two processes can run simultaneously",
+          "When one process modifies a shared resource, others cannot change it",
+          "The buffer is always full for producers"
+        ],
+        answer: 2,
+        explain: "Mutual exclusion: when one process is modifying a shared resource, other processes should not be able to change that resource."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 11: Analyzing Form — Completeness & Consistency ---- */
+  {
+    week: 10,
+    lecNum: "L10",
+    title: "Analyzing Form: Completeness & Consistency",
+    subtitle: "تحليل الشكل: الاكتمال والاتساق",
+    concepts: [
+      {
+        term: "Requirements Completeness and Consistency",
+        definition: "Complete: requirements should include descriptions of ALL facilities required. Consistent: there should be NO conflicts or contradictions in the descriptions of the system facilities. In practice, it is impossible to produce a completely complete and consistent requirements document.",
+        arabic: "متطلبات النظام يجب أن تكون:\n• مكتملة (Complete): تشمل جميع الوظائف المطلوبة\n• متسقة (Consistent): لا تناقضات بين المتطلبات\nعملياً: يستحيل تحقيق الاكتمال والاتساق التام.",
+        diagram: null
+      },
+      {
+        term: "Requirements Validation",
+        definition: "Concerned with demonstrating that the requirements define the system that the customer really wants. Requirements error costs are high: fixing a requirements error after delivery may cost up to 100 times the cost of fixing an implementation error.",
+        arabic: "التحقق من المتطلبات: إثبات أن المتطلبات تُعرّف النظام الذي يريده العميل فعلاً. تصحيح خطأ في المتطلبات بعد التسليم قد يكلف 100 ضعف تكلفة تصحيح خطأ تنفيذي!",
+        diagram: null
+      },
+      {
+        term: "Requirements Checking (5 Types)",
+        definition: "1) Validity: system provides functions that best support customer's needs. 2) Consistency: no requirements conflicts. 3) Completeness: all required functions are included. 4) Realism: can be implemented given available budget and technology. 5) Verifiability: requirements can be checked/tested.",
+        arabic: "أنواع فحص المتطلبات الخمسة:\n① الصلاحية (Validity): هل تُلبّي المتطلبات الاحتياج الحقيقي؟\n② الاتساق (Consistency): هل تتعارض المتطلبات؟\n③ الاكتمال (Completeness): هل تغطي كل الوظائف؟\n④ الواقعية (Realism): هل قابلة للتنفيذ بالميزانية المتاحة؟\n⑤ قابلية التحقق (Verifiability): هل يمكن اختبارها؟",
+        diagram: null
+      },
+      {
+        term: "Requirements Validation Techniques",
+        definition: "1) Requirements reviews: systematic manual analysis. 2) Prototyping: using an executable model to check requirements. 3) Test-case generation: developing tests for requirements to check testability.",
+        arabic: "تقنيات التحقق من المتطلبات:\n① المراجعات (Reviews): تحليل يدوي منهجي\n② النماذج الأولية (Prototyping): نموذج تنفيذي للتحقق\n③ توليد حالات الاختبار: تطوير اختبارات للتحقق من القابلية للاختبار",
+        diagram: null
+      },
+      {
+        term: "Review Checks",
+        definition: "Verifiability: Is the requirement realistically testable? Comprehensibility: Is the requirement properly understood? Traceability: Is the origin of the requirement clearly stated? Adaptability: Can the requirement be changed without a large impact on other requirements?",
+        arabic: "فحوصات المراجعة:\n• قابلية التحقق: هل يمكن اختبار المتطلب واقعياً؟\n• قابلية الفهم: هل يُفهم بوضوح؟\n• التتبعية: هل مصدره واضح؟\n• القابلية للتكيّف: هل يمكن تعديله دون تأثير كبير؟",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "Fixing a requirements error after delivery may cost up to __ times the cost of fixing an implementation error.",
+        opts: ["10", "50", "100", "200"],
+        answer: 2,
+        explain: "Fixing a requirements error after delivery may cost up to 100 times the cost of fixing an implementation error."
+      },
+      {
+        q: "Which requirements check asks: 'Can the requirements be implemented given available budget and technology?'",
+        opts: ["Validity", "Consistency", "Completeness", "Realism"],
+        answer: 3,
+        explain: "Realism checks: Can the requirements be implemented given available budget and technology?"
+      },
+      {
+        q: "Which of the following is a Requirements Validation technique?",
+        opts: ["Class diagrams", "Prototyping", "State machines", "Fault tree analysis"],
+        answer: 1,
+        explain: "Prototyping (using an executable model) is a requirements validation technique."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 11: Analyzing Correctness & Static Analysis ---- */
+  {
+    week: 11,
+    lecNum: "L11",
+    title: "Analyzing Correctness & Static Analysis",
+    subtitle: "تحليل الصحة والتحليل الساكن",
+    concepts: [
+      {
+        term: "Analyzing for Correctness",
+        definition: "Correctness is the degree to which a model satisfies its software requirements and software design specifications, is free of defects, and ultimately meets the stakeholders' needs. Includes verifying syntactic correctness (correct use of modeling language grammar) and semantic correctness (correctly representing the meaning of what is being modeled).",
+        arabic: "تحليل الصحة: درجة مطابقة النموذج للمتطلبات والمواصفات وخلوّه من العيوب.\n• الصحة النحوية (Syntactic): الاستخدام الصحيح لقواعد لغة النمذجة\n• الصحة الدلالية (Semantic): التمثيل الصحيح للمعنى",
+        diagram: null
+      },
+      {
+        term: "Static Analysis",
+        definition: "Static techniques examine software documentation (requirements, interface specifications, designs, models) and software source code WITHOUT executing the code. Work on a source representation — model of specification/design or source code. Can check specification and design models to pick up errors before an executable version is available. Inspections and reviews are a form of static analysis.",
+        arabic: "التحليل الساكن: تقنيات فحص البرمجيات دون تشغيل الكود. تعمل على:\n• مستندات التصميم والمتطلبات\n• الكود المصدري\nتكشف الأخطاء مبكراً قبل التنفيذ. المراجعات والتفتيش هي أشكال منه.",
+        diagram: null
+      },
+      {
+        term: "Syntactic vs Semantic Correctness",
+        definition: "Syntactic correctness: correct use of the modeling language grammar and constructs (checked automatically by tools). Semantic correctness: correct use of modeling language constructs to correctly represent the MEANING of what is being modeled (checked manually via inspections or reviews).",
+        arabic: "الصحة النحوية: هل الكود/النموذج مكتوب وفق قواعد اللغة؟ (يفحصها المُحلِّل الآلي)\nالصحة الدلالية: هل يُعبّر الكود/النموذج عن المعنى الصحيح؟ (تتطلب مراجعة بشرية)",
+        diagram: null
+      },
+      {
+        term: "Model Checking",
+        definition: "A formal verification technique that systematically checks whether a model of a system satisfies a given specification. Automatically explores all possible states of the system to verify correctness properties. Used in critical systems where exhaustive verification is needed.",
+        arabic: "فحص النموذج: تقنية تحقق رسمية تفحص تلقائياً جميع الحالات الممكنة للنظام للتحقق من خصائص الصحة. تُستخدم في الأنظمة الحرجة التي تتطلب تحققاً شاملاً.",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "Static analysis techniques examine software:",
+        opts: [
+          "By executing the code and observing outputs",
+          "Without executing the code",
+          "Only during the testing phase",
+          "Only on final deployed systems"
+        ],
+        answer: 1,
+        explain: "Static analysis works on a source representation WITHOUT executing the code."
+      },
+      {
+        q: "Inspections and reviews are a form of:",
+        opts: ["Dynamic testing", "Static analysis", "Formal verification", "Model checking"],
+        answer: 1,
+        explain: "Inspections and reviews are explicitly stated to be a form of static analysis."
+      },
+      {
+        q: "Semantic correctness of a model means:",
+        opts: [
+          "The model uses correct syntax of the modeling language",
+          "The model constructs correctly represent the MEANING of what is being modeled",
+          "The model passes all automated tool checks",
+          "The model has no missing components"
+        ],
+        answer: 1,
+        explain: "Semantic correctness = correct use of modeling language constructs to correctly represent the MEANING."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 12-13: Analyzing Dependability ---- */
+  {
+    week: 12,
+    lecNum: "L12",
+    title: "Analyzing Dependability",
+    subtitle: "تحليل الموثوقية والاعتمادية",
+    concepts: [
+      {
+        term: "System Dependability",
+        definition: "For many computer-based systems, the most important system property is dependability. Dependability reflects the user's degree of trust in that system — the extent of the user's confidence that it will operate as users expect and will not 'fail' in normal use. Covers: reliability, availability and security (all interdependent).",
+        arabic: "الاعتمادية (Dependability): أهم خاصية في كثير من الأنظمة. تعكس درجة ثقة المستخدم في النظام وثقته بأنه يعمل كما هو متوقع. تشمل: الموثوقية، التوفر، والأمان — وهي مترابطة.",
+        diagram: null
+      },
+      {
+        term: "Importance of Dependability",
+        definition: "System failures may have widespread effects. Undependable systems may be rejected by users. Failure costs may be very high (economic losses, physical damage). Undependable systems may cause information loss with high recovery cost.",
+        arabic: "لماذا الاعتمادية مهمة؟\n• أعطال الأنظمة قد تؤثر على أعداد كبيرة من الناس\n• المستخدمون قد يرفضون الأنظمة غير الموثوقة\n• تكاليف الفشل قد تكون باهظة جداً\n• قد تؤدي لضياع البيانات",
+        diagram: null
+      },
+      {
+        term: "Principal Dependability Properties",
+        definition: "Availability: probability system will be up and running, able to deliver useful services. Reliability: probability system will correctly deliver services as expected. Safety: how likely it is that the system will cause damage to people or environment. Security: how likely it is that the system can resist accidental or deliberate intrusions.",
+        arabic: "الخصائص الأساسية للاعتمادية:\n• التوفر (Availability): احتمال عمل النظام وتقديم الخدمة\n• الموثوقية (Reliability): احتمال تقديم الخدمة بصحة\n• السلامة (Safety): مدى عدم إلحاق الضرر بالأشخاص أو البيئة\n• الأمان (Security): مقاومة الهجمات المتعمدة أو العرضية",
+        diagram: {
+          title: "Principal Dependability Properties Diagram",
+          page: "صفحة 5 - L12"
+        }
+      },
+      {
+        term: "Other Dependability Properties",
+        definition: "Repairability: extent to which system can be repaired after failure. Maintainability: extent to which system can be adapted to new requirements. Survivability: extent to which system can deliver services while under hostile attack. Error tolerance: extent to which user input errors can be avoided and tolerated.",
+        arabic: "خصائص اعتمادية إضافية:\n• القابلية للإصلاح (Repairability): سهولة الإصلاح بعد الفشل\n• قابلية الصيانة (Maintainability): سهولة التكيّف مع المتطلبات الجديدة\n• البقاء (Survivability): الاستمرار تحت الهجوم\n• تحمّل الأخطاء (Error tolerance): تجنّب أخطاء المستخدمين وتحمّلها",
+        diagram: null
+      },
+      {
+        term: "Causes of System Failure",
+        definition: "Hardware failure: design/manufacturing errors or end of natural life. Software failure: errors in specification, design or implementation. Operational failure: human operators make mistakes — now perhaps the largest single cause in socio-technical systems.",
+        arabic: "أسباب فشل النظام:\n① أعطال المكونات (Hardware): أخطاء تصنيع أو انتهاء عمرها\n② أعطال البرمجيات: أخطاء في المتطلبات أو التصميم أو التنفيذ\n③ أعطال التشغيل: أخطاء بشرية — ربما السبب الأكبر حالياً",
+        diagram: null
+      },
+      {
+        term: "Reliability Terminology",
+        definition: "Human error/mistake → System fault (characteristic that can lead to error) → System error (erroneous state) → System failure (event when system doesn't deliver expected service). Example: programmer adds 1 hour to time (fault) → time set to 24.XX (error) → no weather data transmitted (failure).",
+        arabic: "سلسلة الأخطاء:\n① خطأ بشري (Human Error) → ② عيب في النظام (System Fault) → ③ حالة خطأ (System Error) → ④ فشل في النظام (System Failure)\nمثال: خطأ بشري في الكود → عيب → نتيجة خاطئة → فشل في الخدمة",
+        diagram: null
+      },
+      {
+        term: "Safety",
+        definition: "Safety is a system property that reflects the system's ability to operate, normally or abnormally, without danger of causing human injury or death and without damage to the system's environment. Safety requirements are often exclusive requirements (exclude undesirable situations rather than specify required services). Generate functional safety requirements.",
+        arabic: "السلامة (Safety): قدرة النظام على العمل دون خطر إلحاق أذى بالبشر أو البيئة. متطلبات السلامة عادةً استثنائية — تستبعد المواقف غير المرغوبة بدلاً من تحديد الخدمات المطلوبة.",
+        diagram: null
+      },
+      {
+        term: "Security",
+        definition: "Security is a system property that reflects the system's ability to protect itself from accidental or deliberate external attack. Security is essential as most systems are networked. Security is an essential pre-requisite for availability, reliability and safety.",
+        arabic: "الأمان (Security): قدرة النظام على حماية نفسه من الهجمات. ضروري لأن معظم الأنظمة متصلة بالإنترنت. الأمان شرط مسبق للتوفر والموثوقية والسلامة.",
+        diagram: null
+      },
+      {
+        term: "Dependability Achievement",
+        definition: "1) Design protection mechanisms that guard against external attacks. 2) Configure the system correctly for its operating environment. 3) Include recovery mechanisms to help restore normal system service after a failure.",
+        arabic: "تحقيق الاعتمادية:\n① تصميم آليات حماية من الهجمات الخارجية\n② تهيئة النظام بشكل صحيح لبيئة التشغيل\n③ تضمين آليات الاسترداد لاستعادة الخدمة بعد الفشل",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "Which dependability property reflects the probability that the system will correctly deliver services as expected?",
+        opts: ["Availability", "Reliability", "Safety", "Security"],
+        answer: 1,
+        explain: "Reliability = the probability that the system will CORRECTLY deliver services as expected by users."
+      },
+      {
+        q: "In the reliability chain, what comes between System Error and System Failure?",
+        opts: [
+          "Nothing — System Error IS System Failure",
+          "Human Mistake",
+          "System Fault",
+          "System Error leads directly to System Failure"
+        ],
+        answer: 3,
+        explain: "The chain is: Human Error → System Fault → System Error → System Failure."
+      },
+      {
+        q: "Safety requirements are often described as 'exclusive' because they:",
+        opts: [
+          "Are exclusive to critical systems only",
+          "Exclude undesirable situations rather than specify required services",
+          "Can only be verified using formal methods",
+          "Are exclusive to hardware components"
+        ],
+        answer: 1,
+        explain: "Safety requirements are often exclusive — they exclude undesirable situations rather than specifying required system services."
+      }
+    ]
+  },
+
+  /* ---- الأسبوع 14: Formal Analysis (Theorem Proving) ---- */
+  {
+    week: 14,
+    lecNum: "L14",
+    title: "Formal Analysis — Theorem Proving",
+    subtitle: "التحليل الرسمي وإثبات النظريات",
+    concepts: [
+      {
+        term: "Formal Analysis",
+        definition: "Formal analysis techniques use mathematical methods to prove properties of software systems. Includes theorem proving — a formal verification technique that uses logical axioms and inference rules to prove that a system satisfies its specification. More rigorous than testing but more expensive to apply.",
+        arabic: "التحليل الرسمي: استخدام الأساليب الرياضية لإثبات خصائص الأنظمة البرمجية. يشمل إثبات النظريات (Theorem Proving) — أكثر صرامة من الاختبار لكنه أكثر تكلفة.",
+        diagram: null
+      },
+      {
+        term: "Theorem Proving",
+        definition: "A formal verification technique using logical axioms and inference rules to mathematically prove that a program or system satisfies a given formal specification. Provides the highest level of assurance but requires mathematical expertise and is time-consuming.",
+        arabic: "إثبات النظريات: أعلى مستوى من الضمان في التحقق من الصحة. يستخدم البديهيات المنطقية وقواعد الاستدلال لإثبات رياضياً أن البرنامج يحقق مواصفته الرسمية. يتطلب خبرة رياضية عالية.",
+        diagram: null
+      },
+      {
+        term: "Simulation (Analyzing Correctness)",
+        definition: "Simulation involves creating an executable model of the system and running tests on that model. Allows checking of system behaviour before the full system is implemented. Can discover errors that static analysis cannot find.",
+        arabic: "المحاكاة: إنشاء نموذج تنفيذي للنظام واختباره. تسمح بفحص سلوك النظام قبل بناء النظام الكامل. تكتشف أخطاء قد لا يجدها التحليل الساكن.",
+        diagram: null
+      },
+      {
+        term: "Key Points — Dependability (Summary)",
+        definition: "Reliability: related to probability of error in operational use — a system with known faults may be reliable. Safety: system attribute reflecting ability to operate without threatening people or environment. Security: system attribute reflecting ability to protect itself from external attack.",
+        arabic: "ملخص النقاط الجوهرية:\n• الموثوقية: احتمال الخطأ في الاستخدام — نظام به عيوب معروفة قد يكون موثوقاً!\n• السلامة: عدم تهديد الأشخاص أو البيئة\n• الأمان: الحماية من الهجمات الخارجية",
+        diagram: null
+      }
+    ],
+    quizzes: [
+      {
+        q: "Theorem Proving in formal analysis uses:",
+        opts: [
+          "Random testing of system inputs",
+          "Logical axioms and inference rules to mathematically prove system properties",
+          "UML diagrams to verify behavior",
+          "Static analysis of source code"
+        ],
+        answer: 1,
+        explain: "Theorem Proving uses logical axioms and inference rules to mathematically prove that a system satisfies its specification."
+      },
+      {
+        q: "According to key points, a system with known faults may still be:",
+        opts: ["Safe", "Secure", "Reliable", "Dependable in all dimensions"],
+        answer: 2,
+        explain: "Reliability is related to the PROBABILITY of error in operational use — a system with known faults may still be reliable if those faults rarely trigger failures."
+      },
+      {
+        q: "Simulation differs from static analysis in that simulation:",
+        opts: [
+          "Does not require running any code",
+          "Uses an executable model and runs tests on it",
+          "Proves mathematical properties of the system",
+          "Only works on requirements documents"
+        ],
+        answer: 1,
+        explain: "Simulation creates an executable model and runs tests on it — unlike static analysis which examines code without executing it."
+      }
+    ]
+  }
+
+];
+
+/* ==============================================================
+   بيانات الفلاش كارد — مستخرجة من كل الأسابيع
+============================================================== */
+const ALL_FLASHCARDS = [];
+
+// بناء الفلاش كارد من البيانات
+THEORETICAL_DATA.forEach(lec => {
+  lec.concepts.forEach(c => {
+    ALL_FLASHCARDS.push({
+      term: c.term,
+      definition: c.definition,
+      arabic: c.arabic,
+      category: `Week ${lec.week}`
+    });
+  });
+});
+
+/* ==============================================================
+   متغيرات الحالة
+============================================================== */
+let currentCards = [...ALL_FLASHCARDS];
+let currentCardIndex = 0;
+let isFlipped = false;
+let quizScore = 0;
+let quizAnswered = 0;
+let activeFilter = 'all';
+
+/* ==============================================================
+   بناء قسم المحاضرات
+============================================================== */
+function buildChapters() {
+  const container = document.getElementById('chapters-container');
+  let html = '';
+
+  THEORETICAL_DATA.forEach((lec, idx) => {
+    const weekGroups = {};
+    // تجميع حسب المجموعات النظرية
+    html += `<div class="week-header">الأسبوع ${lec.week} — ${lec.subtitle}</div>`;
+    html += `
+    <div class="accordion-item" id="acc-${idx}">
+      <button class="accordion-trigger" onclick="toggleAccordion(${idx})">
+        <div class="lec-num">${lec.lecNum}</div>
+        <div class="lec-info">
+          <span class="lec-title">${lec.title}</span>
+          <span class="lec-sub">${lec.subtitle} — ${lec.concepts.length} مفهوم</span>
+        </div>
+        <span class="chevron">▾</span>
+      </button>
+      <div class="accordion-body" id="body-${idx}">
+        <div class="accordion-body-inner">
+          ${buildConceptsHTML(lec.concepts)}
+        </div>
+      </div>
+    </div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function buildConceptsHTML(concepts) {
+  return concepts.map(c => `
+    <div class="concept-block">
+      <div class="concept-title">${c.term}</div>
+      <div class="def-en">${c.definition}</div>
+      <div class="def-ar">
+        <div class="ar-label">💡 توضيح:</div>
+        ${c.arabic.replace(/\n/g, '<br/>')}
+      </div>
+      ${c.diagram ? `
+      <div class="diagram-placeholder">
+        <span class="ph-icon">🖼️</span>
+        <div class="ph-title">[مكان صورة: ${c.diagram.title}]</div>
+        <div class="ph-hint">${c.diagram.page}</div>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+function toggleAccordion(idx) {
+  const item = document.getElementById(`acc-${idx}`);
+  const body = document.getElementById(`body-${idx}`);
+  const isOpen = item.classList.contains('open');
+
+  // إغلاق الكل
+  document.querySelectorAll('.accordion-item').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.accordion-body').forEach(el => el.style.maxHeight = '0');
+
+  if (!isOpen) {
+    item.classList.add('open');
+    body.style.maxHeight = body.scrollHeight + 'px';
+    // إعادة الحساب بعد اللود
+    setTimeout(() => { body.style.maxHeight = body.scrollHeight + 'px'; }, 50);
+  }
+}
+
+/* ==============================================================
+   بناء الفلاش كارد
+============================================================== */
+function buildFlashcardFilters() {
+  const categories = ['all', ...new Set(ALL_FLASHCARDS.map(c => c.category))];
+  const container = document.getElementById('fc-filter');
+  container.innerHTML = categories.map(cat => `
+    <button class="fc-filter-btn ${cat === activeFilter ? 'active' : ''}"
+            onclick="filterCards('${cat}')">
+      ${cat === 'all' ? 'الكل (' + ALL_FLASHCARDS.length + ')' : cat}
+    </button>
+  `).join('');
+}
+
+function filterCards(category) {
+  activeFilter = category;
+  currentCards = category === 'all'
+    ? [...ALL_FLASHCARDS]
+    : ALL_FLASHCARDS.filter(c => c.category === category);
+  currentCardIndex = 0;
+  isFlipped = false;
+  updateCard();
+  buildFlashcardFilters();
+}
+
+function updateCard() {
+  if (currentCards.length === 0) return;
+  const card = currentCards[currentCardIndex];
+  const scene = document.getElementById('flashcard-scene');
+  
+  // إزالة الانعكاس
+  isFlipped = false;
+  scene.classList.remove('flipped');
+
+  document.getElementById('fc-category').textContent = card.category;
+  document.getElementById('fc-term').textContent = card.term;
+  document.getElementById('fc-back-en').textContent = card.definition;
+  document.getElementById('fc-back-ar-text').textContent = card.arabic;
+
+  const total = currentCards.length;
+  const current = currentCardIndex + 1;
+  document.getElementById('fc-counter').textContent = `البطاقة ${current} من ${total}`;
+  document.getElementById('fc-progress-fill').style.width = `${(current / total) * 100}%`;
+  document.getElementById('fc-prev').disabled = currentCardIndex === 0;
+  document.getElementById('fc-next').disabled = currentCardIndex === total - 1;
+}
+
+function flipCard() {
+  isFlipped = !isFlipped;
+  const scene = document.getElementById('flashcard-scene');
+  scene.classList.toggle('flipped', isFlipped);
+}
+
+function nextCard() {
+  if (currentCardIndex < currentCards.length - 1) {
+    currentCardIndex++;
+    updateCard();
+  }
+}
+
+function prevCard() {
+  if (currentCardIndex > 0) {
+    currentCardIndex--;
+    updateCard();
+  }
+}
+
+function shuffleCards() {
+  currentCards = [...currentCards].sort(() => Math.random() - 0.5);
+  currentCardIndex = 0;
+  updateCard();
+}
+
+function resetCards() {
+  filterCards(activeFilter);
+}
+
+/* ==============================================================
+   بناء قسم الاختبارات
+============================================================== */
+function buildQuizzes() {
+  const container = document.getElementById('quizzes-container');
+  let html = '';
+  let qIdx = 0;
+
+  THEORETICAL_DATA.forEach(lec => {
+    if (!lec.quizzes || lec.quizzes.length === 0) return;
+    html += `
+    <div class="quiz-section">
+      <div class="quiz-lec-title">📝 ${lec.title} — الأسبوع ${lec.week}</div>`;
+    
+    lec.quizzes.forEach(q => {
+      const qi = qIdx++;
+      html += `
+      <div class="quiz-card" id="qcard-${qi}">
+        <div class="quiz-question">Q${qi + 1}: ${q.q}</div>
+        <div class="quiz-options">
+          ${q.opts.map((opt, oi) => `
+            <button class="quiz-opt" onclick="answerQuiz(${qi}, ${oi}, ${q.answer}, this)" data-qi="${qi}">
+              ${String.fromCharCode(65 + oi)}) ${opt}
+            </button>
+          `).join('')}
+        </div>
+        <div class="quiz-feedback" id="qf-${qi}"></div>
+      </div>`;
+    });
+
+    html += `</div>`;
+  });
+
+  container.innerHTML = html;
+}
+
+function answerQuiz(qi, selected, correct, btn) {
+  const card = document.getElementById(`qcard-${qi}`);
+  const feedback = document.getElementById(`qf-${qi}`);
+  const allOpts = card.querySelectorAll('.quiz-opt');
+
+  // تعطيل الكل
+  allOpts.forEach(b => b.disabled = true);
+
+  // تمييز الإجابة الصحيحة والخاطئة
+  allOpts[correct].classList.add('correct');
+  if (selected !== correct) {
+    btn.classList.add('wrong');
+    feedback.className = 'quiz-feedback show fail';
+    feedback.textContent = '❌ إجابة خاطئة. ' + getExplain(qi);
+  } else {
+    quizScore++;
+    feedback.className = 'quiz-feedback show ok';
+    feedback.textContent = '✅ إجابة صحيحة! ' + getExplain(qi);
+  }
+
+  quizAnswered++;
+  document.getElementById('quiz-score').textContent = quizScore;
+  document.getElementById('quiz-total-lbl').textContent = `من ${quizAnswered} سؤال تم الإجابة`;
+}
+
+// استرجاع الشرح للسؤال رقم qi
+function getExplain(qi) {
+  let idx = 0;
+  for (const lec of THEORETICAL_DATA) {
+    if (!lec.quizzes) continue;
+    for (const q of lec.quizzes) {
+      if (idx === qi) return q.explain || '';
+      idx++;
+    }
+  }
+  return '';
+}
+
+/* ==============================================================
+   التنقل بين الأقسام
+============================================================== */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById(tab + '-tab').classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ==============================================================
+   خلفية النجوم
+============================================================== */
+(function initStars() {
+  const canvas = document.getElementById('stars-canvas');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function createStars() {
+    stars = [];
+    for (let i = 0; i < 120; i++) {
+      stars.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.3,
+        a: Math.random(),
+        speed: Math.random() * 0.003 + 0.001
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    stars.forEach(s => {
+      s.a += s.speed;
+      const alpha = (Math.sin(s.a) + 1) / 2 * 0.7 + 0.1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(150,200,255,${alpha})`;
+      ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  createStars();
+  draw();
+  window.addEventListener('resize', () => { resize(); createStars(); });
+})();
+
+/* ==============================================================
+   تهيئة الصفحة
+============================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  buildChapters();
+  buildFlashcardFilters();
+  updateCard();
+  buildQuizzes();
+});
+</script>
+</body>
+</html>
